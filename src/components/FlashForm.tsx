@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "./Button";
 import AlertDialog from "./AlertDialog";
+import GraphemeSplitter from "grapheme-splitter";
 
 type Props = {
     changeEmojis: (emojis: string) => void;
@@ -34,20 +35,31 @@ function FlashForm({ changeEmojis, hideForm, text } : Props) {
     // also filter the input to remove empty spaces.
     function handleSubmit() {
         const cleanedValue = removeModifiers(value);
-
-        const emojis = Array.from(cleanedValue).filter((char) =>
-            /\p{Extended_Pictographic}/u.test(char)
-        );
+    
+        const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+        const graphemes = Array.from(segmenter.segment(cleanedValue), s => s.segment);
         
+        console.log(graphemes);
+
+    
+        const emojis = graphemes.filter((grapheme) =>
+            [...grapheme].some((char) => /\p{Extended_Pictographic}/u.test(char))
+        );
+
+        console.log(`emojis ${emojis}`);
+    
         const cleaned = emojis.join('');
+
+        console.log(cleaned);
+
         const hasInvalidCharacters = cleanedValue !== cleaned;
         const hasDuplicates = new Set(emojis).size !== emojis.length;
-        
+    
         if (hasInvalidCharacters) {
             alert("Please use only emojis — no text or symbols.");
         } else if (hasDuplicates) {
             alert("You have duplicate emojis. Please remove the duplicates and try again.");
-        } else if (emojis.length > 14) {
+        } else if (graphemes.length > 14) {
             alert("You can use up to 14 emojis. Please remove the extras and try again.");
         } else if (cleaned === text) {
             hideForm();
@@ -55,6 +67,7 @@ function FlashForm({ changeEmojis, hideForm, text } : Props) {
             changeEmojis(cleaned);
         }
     }
+    
     
 
     return <div className='ui-container'>

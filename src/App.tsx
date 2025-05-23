@@ -9,7 +9,8 @@ function App() {
   const symbols = "🍒🌸🍉🥑🍌🥥🍑🫐🍇🥕";
 
   function turnEmojisIntoFlashCards(emojis: string) {
-    const emojiArray = Array.from(emojis);  
+    const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+    const emojiArray = Array.from(segmenter.segment(emojis), s => s.segment);
     const singleCards: Flashcard[] = emojiArray.map((emoji) => ({ question: "Game", answer: emoji, stayFlipped: false  }));
     const unshuffledCards: Flashcard[] = [...singleCards, ...singleCards];
     return shuffleArray(unshuffledCards);
@@ -78,7 +79,7 @@ function App() {
   
   return (
     <div>
-      <div>
+  
         <FlashList 
           flashCards={flashCards}
           onMatch={onMatch}
@@ -86,7 +87,7 @@ function App() {
           handleClick={showFlashForm}
           resetGame={resetGame}
         />
-      </div>
+     
       {showForm && <FlashForm
                       changeEmojis={updateEmojis}
                       hideForm={hideFlashForm}
